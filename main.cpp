@@ -1,3 +1,4 @@
+
 #define GLEW_STATIC
 
 #include "shader.hpp"
@@ -58,10 +59,14 @@ int main()
 
     Camera camera;
 
+    printf("%d\n", glGetError());
+
     bool running = true;
     while (running)
     {
         sf::Event event;
+        bool mouseCheck = false;
+
         while (window.pollEvent(event))
             switch (event.type)
             {
@@ -78,15 +83,19 @@ int main()
                     break;
                 }
             case sf::Event::MouseMoved:
-                camera.rotate(defaultMousePosition, sf::Mouse::getPosition(window));
-                sf::Mouse::setPosition(defaultMousePosition, window);
+                mouseCheck = true;
                 break;
             default:
                 break;
             }
-        camera.move();
 
-        glUniformMatrix4fv(uniProj, 1, GL_FALSE, glm::value_ptr(glm::perspective(glm::radians(viewAngle), (float) window.getSize().x / window.getSize().y, nearPlane, farPlane)));
+        if (mouseCheck) {
+            camera.rotate(defaultMousePosition, sf::Mouse::getPosition(window));
+            sf::Mouse::setPosition(defaultMousePosition, window);
+            camera.move();
+        }
+
+        glUniformMatrix4fv(uniProj, 1, GL_FALSE, glm::value_ptr(glm::perspective(glm::radians(viewAngle), (float)window.getSize().x / window.getSize().y, nearPlane, farPlane)));
         glUniformMatrix4fv(uniView, 1, GL_FALSE, glm::value_ptr(camera.display()));
 
         glClearColor(0, 0, 0, 1);
@@ -104,6 +113,8 @@ int main()
 
         window.display();
     }
+
+    glDeleteVertexArrays(1, &vertexArray);
 
     window.close();
     return 0;

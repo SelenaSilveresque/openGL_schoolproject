@@ -1,6 +1,7 @@
 #define GLEW_STATIC
 
 #include <GL/glew.h>
+#include <stdio.h>
 
 #ifndef SHADER_HPP
 #define SHADER_HPP
@@ -23,6 +24,7 @@ GLuint createDefaultShaderProgram()
             gl_Position = proj * view * model * vec4(position, 1);
         }
     )glsl";
+
     GLuint defaultVertexShader = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(defaultVertexShader, 1, &defaultVertexShaderSource, NULL);
     glCompileShader(defaultVertexShader);
@@ -38,13 +40,23 @@ GLuint createDefaultShaderProgram()
             outColor = Color * texture(tex, Texcoord);
         }
     )glsl";
+
     GLuint defaultFragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(defaultFragmentShader, 1, &defaultFragmentShaderSource, NULL);
     glCompileShader(defaultFragmentShader);
 
+    char vertexShaderBuffer[512];
+    glGetShaderInfoLog(defaultVertexShader, 512, NULL, vertexShaderBuffer);
+
+    char fragmentShaderBuffer[512];
+    glGetShaderInfoLog(defaultFragmentShader, 512, NULL, fragmentShaderBuffer);
+
+    printf("%s%s", vertexShaderBuffer, fragmentShaderBuffer);
+
     GLuint defaultShaderProgram = glCreateProgram();
     glAttachShader(defaultShaderProgram, defaultVertexShader);
     glAttachShader(defaultShaderProgram, defaultFragmentShader);
+    glBindFragDataLocation(defaultShaderProgram, 0, "outColor");
     glLinkProgram(defaultShaderProgram);
 
     return defaultShaderProgram;
