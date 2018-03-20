@@ -1,12 +1,11 @@
-
 #define GLEW_STATIC
 
 #include "shader.hpp"
-#include "camera.hpp"
 #include "object.hpp"
 
 #include <GL/glew.h>
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <SFML/Graphics.hpp>
 #include <SFML/Window.hpp>
@@ -18,11 +17,11 @@ const float viewAngle = 45;
 const float nearPlane = 0.1;
 const float  farPlane = 100;
 
-glm::vec3 Camera::defaultPos  (0, 0, 0);
-glm::vec3 Camera::defaultFront(0, 1, 0);
-glm::vec3 Camera::defaultUp   (0, 0, 1);
-float Camera::speed            = 0.005;
-float Camera::mouseSensitivity = 0.05;
+const float mouseSensitivity = 0.05 ;
+glm::vec3 cameraPos  (0, 0, 0),
+          cameraFront(0, 1, 0),
+          cameraUp   (0, 0, 1);
+float yaw = 0, pitch = 0;
 
 int main()
 {
@@ -57,15 +56,13 @@ int main()
     object[2] = createTexturedCube(glm::vec3(7, 3, 0), 1, "cube2.png");
     object[3] = createTexturedCube(glm::vec3(7, 7, 0), 1, "cube3.png");
 
-    Camera camera;
-
     printf("%d\n", glGetError());
 
     bool running = true;
     while (running)
     {
         sf::Event event;
-        bool mouseCheck = false;
+        bool checkMouseMove = false;
 
         while (window.pollEvent(event))
             switch (event.type)
@@ -83,20 +80,30 @@ int main()
                     break;
                 }
             case sf::Event::MouseMoved:
-                mouseCheck = true;
+                checkMouseMove = true;
                 break;
             default:
                 break;
             }
 
-        if (mouseCheck) {
-            camera.rotate(defaultMousePosition, sf::Mouse::getPosition(window));
+        if (checkMouseMove) {
+            sf::Vector2i currentMousePosition = sf::Mouse::getPosition(window);
+            yaw   += (currentMousePosition.x - defaultMousePosition.x) * mouseSensitivity;
+            pitch += (defaultMousePosition.y - currentMousePosition.y) * mouseSensitivity;
             sf::Mouse::setPosition(defaultMousePosition, window);
-            camera.move();
+            
+            if (pitch >  89)
+                pitch =  89;
+            if (pitch < -89)
+                pitch = -89;
+
+            cameraFront.x = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+            cameraFront.y = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+            cameraFront.z = sin(glm::radians(pitch));
         }
 
         glUniformMatrix4fv(uniProj, 1, GL_FALSE, glm::value_ptr(glm::perspective(glm::radians(viewAngle), (float)window.getSize().x / window.getSize().y, nearPlane, farPlane)));
-        glUniformMatrix4fv(uniView, 1, GL_FALSE, glm::value_ptr(camera.display()));
+        glUniformMatrix4fv(uniView, 1, GL_FALSE, glm::value_ptr(glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp)));
 
         glClearColor(0, 0, 0, 1);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
