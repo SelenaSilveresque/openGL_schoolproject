@@ -2,6 +2,7 @@
 
 #include "shader.hpp"
 #include "object.hpp"
+#include "target.hpp"
 
 #include <GL/glew.h>
 #include <glm/glm.hpp>
@@ -10,8 +11,10 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Window.hpp>
 
-const int defaultWindowWidth  = 800;
-const int defaultWindowHeight = 600;
+#include <chrono>
+
+const int WinWidth  = 800;
+const int WinHeight = 600;
 
 const float viewAngle = 45;
 const float nearPlane = 0.1;
@@ -23,9 +26,13 @@ glm::vec3 cameraPos  (0, 0, 0),
           cameraUp   (0, 0, 1);
 float yaw = 0, pitch = 0;
 
+std::chrono::steady_clock::time_point last_frame, current_frame;
+
 int main()
 {
-    sf::RenderWindow window(sf::VideoMode(defaultWindowWidth, defaultWindowHeight), "SFML window", sf::Style::Default, sf::ContextSettings(24, 8));
+    random_engine.seed(std::chrono::steady_clock::now().time_since_epoch().count());
+
+    sf::RenderWindow window(sf::VideoMode(WinWidth, WinHeight), "SFML window", sf::Style::Default, sf::ContextSettings(24, 8));
     window.setMouseCursorGrabbed(true) ;
     window.setMouseCursorVisible(false);
     sf::Vector2i defaultMousePosition(window.getSize().x / 2, window.getSize().y / 2);
@@ -50,17 +57,20 @@ int main()
     GLint texAttrib = glGetAttribLocation(shaderProgram, "texcoord");
     glEnableVertexAttribArray(texAttrib);
 
-    TexturedObject object[4];
-    object[0] = createTexturedCube(glm::vec3(3, 3, 0), 1, "cube0.png");
-    object[1] = createTexturedCube(glm::vec3(3, 7, 0), 1, "cube1.png");
-    object[2] = createTexturedCube(glm::vec3(7, 3, 0), 1, "cube2.png");
-    object[3] = createTexturedCube(glm::vec3(7, 7, 0), 1, "cube3.png");
-
-    printf("%d\n", glGetError());
+    TargetArray targets;
+    targets.object = createTexturedSquare(glm::vec3(0), 1, "defaultTargetTexture.png");
 
     bool running = true;
+    last_frame = std::chrono::steady_clock::now();
+
     while (running)
     {
+        current_frame = std::chrono::steady_clock::now();
+        std::chrono::milliseconds timeSinceLastFrame = std::chrono::duration_cast<std::chrono::milliseconds>(current_frame - last_frame);
+        last_frame = current_frame;
+
+        targets.update(timeSinceLastFrame);
+
         sf::Event event;
         bool checkMouseMove = false;
 
@@ -108,15 +118,7 @@ int main()
         glClearColor(0, 0, 0, 1);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        for (int i = 0; i < 4; ++i)
-        {
-            glBindBuffer(GL_ARRAY_BUFFER, object[i].vertexBuffer);
-            glVertexAttribPointer(posAttrib, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), 0);
-            glVertexAttribPointer(texAttrib, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
-            glBindTexture(GL_TEXTURE_2D, object[i].texture);
-            glUniformMatrix4fv(uniModel, 1, GL_FALSE, glm::value_ptr(object[i].model));
-            glDrawArrays(GL_TRIANGLES, 0, object[i].vertexCount);
-        }
+        targets.draw(posAttrib, texAttrib, uniModel);
 
         window.display();
     }
