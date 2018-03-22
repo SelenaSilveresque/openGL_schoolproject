@@ -33,7 +33,33 @@ struct TexturedObject
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     }
+
+    void draw(GLint posAttrib, GLint texAttrib, GLint uniModel)
+    {
+        glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+        glVertexAttribPointer(posAttrib, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GL_FLOAT), 0);
+        glVertexAttribPointer(texAttrib, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GL_FLOAT), (void*)(3 * sizeof(GL_FLOAT)));
+        glBindTexture(GL_TEXTURE_2D, texture);
+        glUniformMatrix4fv(uniModel, 1, GL_FALSE, glm::value_ptr(model));
+        glDrawArrays(GL_TRIANGLES, 0, vertexCount);
+    }
 };
+
+TexturedObject createTexturedSquare(glm::vec3 pos, float sz, const char* texturefile)
+{
+    TexturedObject myObject(texturefile);
+    myObject.vertexCount = 6;
+    std::vector<GLfloat> vertices = {
+        pos.x - sz, pos.y, pos.z - sz, 0, 0,
+        pos.x - sz, pos.y, pos.z + sz, 0, 1,
+        pos.x + sz, pos.y, pos.z - sz, 1, 0,
+        pos.x - sz, pos.y, pos.z + sz, 0, 1,
+        pos.x + sz, pos.y, pos.z - sz, 1, 0,
+        pos.x + sz, pos.y, pos.z + sz, 1, 1
+    };
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(GLfloat), &vertices[0], GL_STATIC_DRAW);
+    return myObject;
+}
 
 TexturedObject createTexturedCube(glm::vec3 pos, float sz, const char* texturefile)
 {
