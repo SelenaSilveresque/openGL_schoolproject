@@ -20,7 +20,7 @@ const float viewAngle = 45;
 const float nearPlane = 0.1;
 const float  farPlane = 100;
 
-const float mouseSensitivity = 0.05 ;
+const float mouseSensitivity = 0.02;
 glm::vec3 cameraPos  (0, 0, 0),
           cameraFront(0, 1, 0),
           cameraUp   (0, 0, 1);
@@ -42,6 +42,8 @@ int main()
     glewInit();
 
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     GLuint shaderProgram = createDefaultShaderProgram();
     glUseProgram(shaderProgram);
@@ -59,6 +61,9 @@ int main()
 
     TargetArray targets;
     targets.object = createTexturedSquare(glm::vec3(0), 1, "defaultTargetTexture.png");
+          
+    TexturedObject background = createTexturedSquare(glm::vec3(0, 11, 0), 10, "backgroundTexture.png");
+    TexturedObject foreground = createTexturedSquare(glm::vec3(0, 5.5, 0), 6, "foregroundTexture.png");
 
     bool running = true;
     last_frame = std::chrono::steady_clock::now();
@@ -69,7 +74,8 @@ int main()
         std::chrono::milliseconds timeSinceLastFrame = std::chrono::duration_cast<std::chrono::milliseconds>(current_frame - last_frame);
         last_frame = current_frame;
 
-        targets.update(timeSinceLastFrame);
+        if (timeSinceLastFrame.count() > 0)
+            targets.update(timeSinceLastFrame);
 
         sf::Event event;
         bool checkMouseMove = false;
@@ -102,10 +108,15 @@ int main()
             pitch += (defaultMousePosition.y - currentMousePosition.y) * mouseSensitivity;
             sf::Mouse::setPosition(defaultMousePosition, window);
             
-            if (pitch >  89)
-                pitch =  89;
-            if (pitch < -89)
-                pitch = -89;
+            if (yaw >  45)
+                yaw =  45;
+            if (yaw < -45)
+                yaw = -45;
+
+            if (pitch >  25)
+                pitch =  25;
+            if (pitch < -25)
+                pitch = -25;
 
             cameraFront.x = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
             cameraFront.y = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
@@ -118,7 +129,9 @@ int main()
         glClearColor(0, 0, 0, 1);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        targets.draw(posAttrib, texAttrib, uniModel);
+        background.draw(posAttrib, texAttrib, uniModel);
+        targets   .draw(posAttrib, texAttrib, uniModel);
+        foreground.draw(posAttrib, texAttrib, uniModel);
 
         window.display();
     }
