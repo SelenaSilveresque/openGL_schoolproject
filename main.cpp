@@ -61,9 +61,10 @@ int main()
 
     TargetArray targets;
     targets.object = createTexturedSquare(glm::vec3(0), 1, "defaultTargetTexture.png");
-          
+
     TexturedObject background = createTexturedSquare(glm::vec3(0, 11, 0), 10, "backgroundTexture.png");
     TexturedObject foreground = createTexturedSquare(glm::vec3(0, 5.5, 0), 6, "foregroundTexture.png");
+    TexturedObject crosshair = createTexturedSquare(glm::vec3(0, 0.1, 0), 0.1, "crosshair.png");
 
     bool running = true;
     last_frame = std::chrono::steady_clock::now();
@@ -107,7 +108,7 @@ int main()
             yaw   += (currentMousePosition.x - defaultMousePosition.x) * mouseSensitivity;
             pitch += (defaultMousePosition.y - currentMousePosition.y) * mouseSensitivity;
             sf::Mouse::setPosition(defaultMousePosition, window);
-            
+
             if (yaw >  45)
                 yaw =  45;
             if (yaw < -45)
@@ -133,10 +134,17 @@ int main()
         targets   .draw(posAttrib, texAttrib, uniModel);
         foreground.draw(posAttrib, texAttrib, uniModel);
 
+        glUniformMatrix4fv(uniProj, 1, GL_FALSE, glm::value_ptr(glm::perspective((float)glm::radians(45.0), (float)window.getSize().x / window.getSize().y, 1.0f, 10.0f)));
+        glUniformMatrix4fv(uniView, 1, GL_FALSE, glm::value_ptr(glm::lookAt(glm::vec3(0, -2, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 2))));
+
+        crosshair.draw(posAttrib, texAttrib, uniModel);
+
         window.display();
     }
 
     glDeleteVertexArrays(1, &vertexArray);
+
+    printf("%s\n", gluErrorString(glGetError()));
 
     window.close();
     return 0;
