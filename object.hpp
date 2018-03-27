@@ -1,11 +1,12 @@
+#ifndef CREATE_OBJECTS_HPP
+#define CREATE_OBJECTS_HPP
+
 #include <GL/glew.h>
 #include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <SOIL.h>
 
 #include <vector>
-
-#ifndef CREATE_OBJECTS_HPP
-#define CREATE_OBJECTS_HPP
 
 struct TexturedObject
 {
@@ -24,14 +25,14 @@ struct TexturedObject
         glBindTexture(GL_TEXTURE_2D, texture);
 
         int width, height;
-        unsigned char* image = SOIL_load_image(texturefile, &width, &height, 0, SOIL_LOAD_RGB);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+        unsigned char* image = SOIL_load_image(texturefile, &width, &height, 0, SOIL_LOAD_RGBA);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
         SOIL_free_image_data(image);
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     }
 
     void draw(GLint posAttrib, GLint texAttrib, GLint uniModel)
@@ -50,12 +51,12 @@ TexturedObject createTexturedSquare(glm::vec3 pos, float sz, const char* texture
     TexturedObject myObject(texturefile);
     myObject.vertexCount = 6;
     std::vector<GLfloat> vertices = {
-        pos.x - sz, pos.y, pos.z - sz, 0, 0,
-        pos.x - sz, pos.y, pos.z + sz, 0, 1,
-        pos.x + sz, pos.y, pos.z - sz, 1, 0,
-        pos.x - sz, pos.y, pos.z + sz, 0, 1,
-        pos.x + sz, pos.y, pos.z - sz, 1, 0,
-        pos.x + sz, pos.y, pos.z + sz, 1, 1
+        pos.x - sz, pos.y, pos.z + sz, 0, 0,
+        pos.x - sz, pos.y, pos.z - sz, 0, 1,
+        pos.x + sz, pos.y, pos.z + sz, 1, 0,
+        pos.x - sz, pos.y, pos.z - sz, 0, 1,
+        pos.x + sz, pos.y, pos.z + sz, 1, 0,
+        pos.x + sz, pos.y, pos.z - sz, 1, 1
     };
     glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(GLfloat), &vertices[0], GL_STATIC_DRAW);
     return myObject;
@@ -66,47 +67,47 @@ TexturedObject createTexturedCube(glm::vec3 pos, float sz, const char* texturefi
     TexturedObject myObject(texturefile);
     myObject.vertexCount = 36;
     std::vector<GLfloat> vertices = {
-        pos.x + sz, pos.y + sz, pos.z + sz, 0, 0,
-        pos.x + sz, pos.y + sz, pos.z - sz, 0, 1,
-        pos.x + sz, pos.y - sz, pos.z + sz, 1, 0,
-        pos.x + sz, pos.y + sz, pos.z - sz, 0, 1,
-        pos.x + sz, pos.y - sz, pos.z + sz, 1, 0,
-        pos.x + sz, pos.y - sz, pos.z - sz, 1, 1,
-
-        pos.x - sz, pos.y + sz, pos.z + sz, 0, 0,
-        pos.x - sz, pos.y + sz, pos.z - sz, 0, 1,
-        pos.x + sz, pos.y + sz, pos.z + sz, 1, 0,
-        pos.x - sz, pos.y + sz, pos.z - sz, 0, 1,
         pos.x + sz, pos.y + sz, pos.z + sz, 1, 0,
         pos.x + sz, pos.y + sz, pos.z - sz, 1, 1,
-
         pos.x + sz, pos.y - sz, pos.z + sz, 0, 0,
-        pos.x - sz, pos.y - sz, pos.z + sz, 0, 1,
-        pos.x + sz, pos.y + sz, pos.z + sz, 1, 0,
-        pos.x - sz, pos.y - sz, pos.z + sz, 0, 1,
-        pos.x + sz, pos.y + sz, pos.z + sz, 1, 0,
-        pos.x - sz, pos.y + sz, pos.z + sz, 1, 1,
+        pos.x + sz, pos.y + sz, pos.z - sz, 1, 1,
+        pos.x + sz, pos.y - sz, pos.z + sz, 0, 0,
+        pos.x + sz, pos.y - sz, pos.z - sz, 0, 1,
 
-        pos.x - sz, pos.y - sz, pos.z + sz, 0, 0,
-        pos.x - sz, pos.y - sz, pos.z - sz, 0, 1,
-        pos.x - sz, pos.y + sz, pos.z + sz, 1, 0,
-        pos.x - sz, pos.y - sz, pos.z - sz, 0, 1,
         pos.x - sz, pos.y + sz, pos.z + sz, 1, 0,
         pos.x - sz, pos.y + sz, pos.z - sz, 1, 1,
+        pos.x + sz, pos.y + sz, pos.z + sz, 0, 0,
+        pos.x - sz, pos.y + sz, pos.z - sz, 1, 1,
+        pos.x + sz, pos.y + sz, pos.z + sz, 0, 0,
+        pos.x + sz, pos.y + sz, pos.z - sz, 0, 1,
 
-        pos.x + sz, pos.y - sz, pos.z + sz, 0, 0,
-        pos.x + sz, pos.y - sz, pos.z - sz, 0, 1,
-        pos.x - sz, pos.y - sz, pos.z + sz, 1, 0,
-        pos.x + sz, pos.y - sz, pos.z - sz, 0, 1,
+        pos.x + sz, pos.y - sz, pos.z + sz, 1, 0,
+        pos.x - sz, pos.y - sz, pos.z + sz, 1, 1,
+        pos.x + sz, pos.y + sz, pos.z + sz, 0, 0,
+        pos.x - sz, pos.y - sz, pos.z + sz, 1, 1,
+        pos.x + sz, pos.y + sz, pos.z + sz, 0, 0,
+        pos.x - sz, pos.y + sz, pos.z + sz, 0, 1,
+
         pos.x - sz, pos.y - sz, pos.z + sz, 1, 0,
         pos.x - sz, pos.y - sz, pos.z - sz, 1, 1,
+        pos.x - sz, pos.y + sz, pos.z + sz, 0, 0,
+        pos.x - sz, pos.y - sz, pos.z - sz, 1, 1,
+        pos.x - sz, pos.y + sz, pos.z + sz, 0, 0,
+        pos.x - sz, pos.y + sz, pos.z - sz, 0, 1,
 
-        pos.x - sz, pos.y - sz, pos.z - sz, 0, 0,
-        pos.x + sz, pos.y - sz, pos.z - sz, 0, 1,
-        pos.x - sz, pos.y + sz, pos.z - sz, 1, 0,
-        pos.x + sz, pos.y - sz, pos.z - sz, 0, 1,
-        pos.x - sz, pos.y + sz, pos.z - sz, 1, 0,
-        pos.x + sz, pos.y + sz, pos.z - sz, 1, 1
+        pos.x + sz, pos.y - sz, pos.z + sz, 1, 0,
+        pos.x + sz, pos.y - sz, pos.z - sz, 1, 1,
+        pos.x - sz, pos.y - sz, pos.z + sz, 0, 0,
+        pos.x + sz, pos.y - sz, pos.z - sz, 1, 1,
+        pos.x - sz, pos.y - sz, pos.z + sz, 0, 0,
+        pos.x - sz, pos.y - sz, pos.z - sz, 0, 1,
+
+        pos.x - sz, pos.y - sz, pos.z - sz, 1, 0,
+        pos.x + sz, pos.y - sz, pos.z - sz, 1, 1,
+        pos.x - sz, pos.y + sz, pos.z - sz, 0, 0,
+        pos.x + sz, pos.y - sz, pos.z - sz, 1, 1,
+        pos.x - sz, pos.y + sz, pos.z - sz, 0, 0,
+        pos.x + sz, pos.y + sz, pos.z - sz, 0, 1
     };
     glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(GLfloat), &vertices[0], GL_STATIC_DRAW);
     return myObject;
