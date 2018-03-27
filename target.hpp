@@ -21,27 +21,33 @@ struct TargetArray
 {
     TexturedObject object;
     std::list<glm::vec3> copies;
-    std::chrono::milliseconds timeToNextTarget;
+    std::chrono::milliseconds timeToNextTarget, timeSinceCreation;
+    float speed = 0.005;
+    int interval = 500;
 
     TargetArray()
     {
-        timeToNextTarget = std::chrono::milliseconds(random_engine() % 4000 + 1000);
+        timeToNextTarget = std::chrono::milliseconds(random_engine() % interval + interval);
+        timeSinceCreation = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::duration::zero());
     }
 
     void update(std::chrono::milliseconds timeElapsed)
     {
         timeToNextTarget -= timeElapsed;
+        timeSinceCreation += timeElapsed;
+        speed = 0.005 + timeSinceCreation.count() * 5e-7;
+        interval = 500 - std::chrono::duration_cast<std::chrono::seconds>(timeSinceCreation).count();
         if (timeToNextTarget < std::chrono::steady_clock::duration::zero())
         {
-            timeToNextTarget = std::chrono::milliseconds(random_engine() % 500 + 500);
-            copies.insert(copies.end(), glm::vec3(-7, 10, 0));
+            timeToNextTarget = std::chrono::milliseconds(random_engine() % interval + interval);
+            copies.insert(copies.end(), glm::vec3(-10, 10, (float) (random_engine() % 6000) / 1000 - 3));
         }
 
         std::list<glm::vec3>::iterator cur = copies.begin();
         while (cur != copies.end())
         {
-            *cur += glm::vec3(0.02, 0, 0) * (float) timeElapsed.count();
-            if (cur->x > 7)
+            *cur += glm::vec3(speed, 0, 0) * (float) timeElapsed.count();
+            if (cur->x > 10)
                 cur = copies.erase(cur);
             else ++cur;
         }
