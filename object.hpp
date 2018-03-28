@@ -3,27 +3,59 @@
 
 #include <GL/glew.h>
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/vector_angle.hpp>
 #include <SOIL.h>
 
+#include <list>
 #include <vector>
 
-struct TexturedObject
+struct SimpleObject
 {
-    int vertexCount;
-    GLuint vertexBuffer, texture;
-    glm::mat4 model = glm::mat4(1);
+    glm::mat4 trans = glm::mat4(1),
+              rot   = glm::mat4(1),
+              scale = glm::mat4(1);
 
-    TexturedObject() {}
-
-    TexturedObject(const char* texturefile)
+    glm::vec3 position  = glm::vec3(0);
+    void update_position(const glm::vec3 &t)
     {
-        glGenBuffers(1, &vertexBuffer);
+        trans = glm::translate(trans, t);
+        position += t;
+    }
+
+    void update_angle(const glm::vec3 &a, const glm::vec3 &b)
+    {
+        rot = glm::rotate(rot, glm::orientedAngle(a, b, glm::cross(a, b)), glm::cross(a, b));
+    }
+
+    void update_size(const glm::vec3 &s)
+    {
+        scale = glm::scale(scale, s);
+    }
+
+    glm::vec3 direction;
+    float speed;
+    void update_time(int timeElapsed)
+    {
+        update_position(direction * speed * static_cast<float>(timeElapsed));
+    }
+};
+
+struct DefaultObject : public SimpleObject
+{
+    GLuint vertexBuffer;
+    int vertexCount;
+    void update_buffer(std::vector<GLfloat> vertices)
+    {
         glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+        vertexCount = vertices.size() / 5;
+        glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(GLfloat), &vertices[0], GL_STATIC_DRAW);
+    }
 
-        glGenTextures(1, &texture);
-        glBindTexture(GL_TEXTURE_2D, texture);
-
+    GLuint texture;
+    void update_texture(const char* texturefile)
+    {
         int width, height;
         unsigned char* image = SOIL_load_image(texturefile, &width, &height, 0, SOIL_LOAD_RGBA);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
@@ -38,79 +70,107 @@ struct TexturedObject
     void draw(GLint posAttrib, GLint texAttrib, GLint uniModel)
     {
         glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-        glVertexAttribPointer(posAttrib, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GL_FLOAT), 0);
-        glVertexAttribPointer(texAttrib, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GL_FLOAT), (void*)(3 * sizeof(GL_FLOAT)));
+            glVertexAttribPointer(posAttrib, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GL_FLOAT), 0);
+            glVertexAttribPointer(texAttrib, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GL_FLOAT), (void*)(3 * sizeof(GL_FLOAT)));
         glBindTexture(GL_TEXTURE_2D, texture);
-        glUniformMatrix4fv(uniModel, 1, GL_FALSE, glm::value_ptr(model));
+        glUniformMatrix4fv(uniModel, 1, GL_FALSE, glm::value_ptr(trans * rot * scale));
         glDrawArrays(GL_TRIANGLES, 0, vertexCount);
+    }
+
+    DefaultObject() {
+        glGenBuffers(1, &vertexBuffer);
+        glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+
+        glGenTextures(1, &texture);
+        glBindTexture(GL_TEXTURE_2D, texture);
     }
 };
 
-TexturedObject createTexturedSquare(glm::vec3 pos, float sz, const char* texturefile)
+struct ObjectArray : public DefaultObject
 {
-    TexturedObject myObject(texturefile);
-    myObject.vertexCount = 6;
-    std::vector<GLfloat> vertices = {
-        pos.x - sz, pos.y, pos.z + sz, 0, 0,
-        pos.x - sz, pos.y, pos.z - sz, 0, 1,
-        pos.x + sz, pos.y, pos.z + sz, 1, 0,
-        pos.x - sz, pos.y, pos.z - sz, 0, 1,
-        pos.x + sz, pos.y, pos.z + sz, 1, 0,
-        pos.x + sz, pos.y, pos.z - sz, 1, 1
+    std::list<SimpleObject> copies;
+    void update_time(int timeElapsed)
+    {
+        for (SimpleObject& copy : copies)
+        {
+            copy.update_time(timeElapsed);
+        }
+    }
+
+    void draw(GLint posAttrib, GLint texAttrib, GLint uniModel)
+    {
+        glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+            glVertexAttribPointer(posAttrib, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GL_FLOAT), 0);
+            glVertexAttribPointer(texAttrib, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GL_FLOAT), (void*)(3 * sizeof(GL_FLOAT)));
+        glBindTexture(GL_TEXTURE_2D, texture);
+
+        for (SimpleObject& copy : copies)
+        {
+            glUniformMatrix4fv(uniModel, 1, GL_FALSE, glm::value_ptr(copy.trans * copy.rot * copy.scale));
+            glDrawArrays(GL_TRIANGLES, 0, vertexCount);
+        }
+    }
+};
+
+std::vector<GLfloat> createSquareBuffer() /** perpendicular to y-axis **/
+{
+    std::vector<GLfloat> result = {
+        -1, 0,  1, 0, 0,
+        -1, 0, -1, 0, 1,
+         1, 0,  1, 1, 0,
+        -1, 0, -1, 0, 1,
+         1, 0,  1, 1, 0,
+         1, 0, -1, 1, 1
     };
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(GLfloat), &vertices[0], GL_STATIC_DRAW);
-    return myObject;
+    return result;
 }
 
-TexturedObject createTexturedCube(glm::vec3 pos, float sz, const char* texturefile)
+std::vector<GLfloat> createCubeBuffer()
 {
-    TexturedObject myObject(texturefile);
-    myObject.vertexCount = 36;
-    std::vector<GLfloat> vertices = {
-        pos.x + sz, pos.y + sz, pos.z + sz, 1, 0,
-        pos.x + sz, pos.y + sz, pos.z - sz, 1, 1,
-        pos.x + sz, pos.y - sz, pos.z + sz, 0, 0,
-        pos.x + sz, pos.y + sz, pos.z - sz, 1, 1,
-        pos.x + sz, pos.y - sz, pos.z + sz, 0, 0,
-        pos.x + sz, pos.y - sz, pos.z - sz, 0, 1,
+    std::vector<GLfloat> result = {
+         1,  1,  1, 1, 0,
+         1,  1, -1, 1, 1,
+         1, -1,  1, 0, 0,
+         1,  1, -1, 1, 1,
+         1, -1,  1, 0, 0,
+         1, -1, -1, 0, 1,
 
-        pos.x - sz, pos.y + sz, pos.z + sz, 1, 0,
-        pos.x - sz, pos.y + sz, pos.z - sz, 1, 1,
-        pos.x + sz, pos.y + sz, pos.z + sz, 0, 0,
-        pos.x - sz, pos.y + sz, pos.z - sz, 1, 1,
-        pos.x + sz, pos.y + sz, pos.z + sz, 0, 0,
-        pos.x + sz, pos.y + sz, pos.z - sz, 0, 1,
+        -1,  1,  1, 1, 0,
+        -1,  1, -1, 1, 1,
+         1,  1,  1, 0, 0,
+        -1,  1, -1, 1, 1,
+         1,  1,  1, 0, 0,
+         1,  1, -1, 0, 1,
 
-        pos.x + sz, pos.y - sz, pos.z + sz, 1, 0,
-        pos.x - sz, pos.y - sz, pos.z + sz, 1, 1,
-        pos.x + sz, pos.y + sz, pos.z + sz, 0, 0,
-        pos.x - sz, pos.y - sz, pos.z + sz, 1, 1,
-        pos.x + sz, pos.y + sz, pos.z + sz, 0, 0,
-        pos.x - sz, pos.y + sz, pos.z + sz, 0, 1,
+         1, -1,  1, 1, 0,
+        -1, -1,  1, 1, 1,
+         1,  1,  1, 0, 0,
+        -1, -1,  1, 1, 1,
+         1,  1,  1, 0, 0,
+        -1,  1,  1, 0, 1,
 
-        pos.x - sz, pos.y - sz, pos.z + sz, 1, 0,
-        pos.x - sz, pos.y - sz, pos.z - sz, 1, 1,
-        pos.x - sz, pos.y + sz, pos.z + sz, 0, 0,
-        pos.x - sz, pos.y - sz, pos.z - sz, 1, 1,
-        pos.x - sz, pos.y + sz, pos.z + sz, 0, 0,
-        pos.x - sz, pos.y + sz, pos.z - sz, 0, 1,
+        -1, -1,  1, 1, 0,
+        -1, -1, -1, 1, 1,
+        -1,  1,  1, 0, 0,
+        -1, -1, -1, 1, 1,
+        -1,  1,  1, 0, 0,
+        -1,  1, -1, 0, 1,
 
-        pos.x + sz, pos.y - sz, pos.z + sz, 1, 0,
-        pos.x + sz, pos.y - sz, pos.z - sz, 1, 1,
-        pos.x - sz, pos.y - sz, pos.z + sz, 0, 0,
-        pos.x + sz, pos.y - sz, pos.z - sz, 1, 1,
-        pos.x - sz, pos.y - sz, pos.z + sz, 0, 0,
-        pos.x - sz, pos.y - sz, pos.z - sz, 0, 1,
+         1, -1,  1, 1, 0,
+         1, -1, -1, 1, 1,
+        -1, -1,  1, 0, 0,
+         1, -1, -1, 1, 1,
+        -1, -1,  1, 0, 0,
+        -1, -1, -1, 0, 1,
 
-        pos.x - sz, pos.y - sz, pos.z - sz, 1, 0,
-        pos.x + sz, pos.y - sz, pos.z - sz, 1, 1,
-        pos.x - sz, pos.y + sz, pos.z - sz, 0, 0,
-        pos.x + sz, pos.y - sz, pos.z - sz, 1, 1,
-        pos.x - sz, pos.y + sz, pos.z - sz, 0, 0,
-        pos.x + sz, pos.y + sz, pos.z - sz, 0, 1
+        -1, -1, -1, 1, 0,
+         1, -1, -1, 1, 1,
+        -1,  1, -1, 0, 0,
+         1, -1, -1, 1, 1,
+        -1,  1, -1, 0, 0,
+         1,  1, -1, 0, 1
     };
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(GLfloat), &vertices[0], GL_STATIC_DRAW);
-    return myObject;
+    return result;
 }
 
 #endif // CREATE_OBJECTS_HPP
