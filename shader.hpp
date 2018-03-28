@@ -1,12 +1,12 @@
+#ifndef SHADER_HPP
+#define SHADER_HPP
+
 #define GLEW_STATIC
 
 #include <GL/glew.h>
 #include <stdio.h>
 #include <fstream>
 #include <iostream>
-
-#ifndef SHADER_HPP
-#define SHADER_HPP
 
 const char* loadShader(const char *shaderSource)
 {
