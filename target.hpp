@@ -10,62 +10,56 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include <chrono>
 #include <ctime>
 #include <list>
 #include <random>
 
 std::mt19937 random_engine(time(nullptr));
 
-struct TargetArray
+struct TargetArray : public ObjectArray
 {
-    TexturedObject object;
-    std::list<glm::vec3> copies;
-    std::chrono::milliseconds timeToNextTarget, timeSinceCreation;
-    float speed = 0.005;
+    int timeToNextTarget, timeSinceCreation = 0;
     int interval = 500;
-
     TargetArray()
     {
-        timeToNextTarget = std::chrono::milliseconds(random_engine() % interval + interval);
-        timeSinceCreation = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::duration::zero());
+        speed = 0.005;
+        update_buffer(createSquareBuffer());
+        update_texture("defaultTargetTexture.png");
+        timeToNextTarget = random_engine() % interval + interval;
     }
 
-    void update(std::chrono::milliseconds timeElapsed)
+    const int left_edge = -10,
+              right_edge = 10,
+              distance_to_screen = 10,
+              screen_height = 8;
+    const float target_size = 1;
+    void update_time(int timeElapsed)
     {
-        timeToNextTarget -= timeElapsed;
+        speed += timeElapsed * 5e-8;
+
         timeSinceCreation += timeElapsed;
-        speed = 0.005 + timeSinceCreation.count() * 5e-7;
-        interval = 500 - std::chrono::duration_cast<std::chrono::seconds>(timeSinceCreation).count();
-        if (timeToNextTarget < std::chrono::steady_clock::duration::zero())
+        interval = 500 - timeSinceCreation / 1000;
+
+        timeToNextTarget -= timeElapsed;
+        if (timeToNextTarget <= 0)
         {
-            timeToNextTarget = std::chrono::milliseconds(random_engine() % interval + interval);
-            copies.insert(copies.end(), glm::vec3(-10, 10, (float) (random_engine() % 6000) / 1000 - 3));
+            SimpleObject new_target;
+                new_target.update_size(glm::vec3(target_size));
+                new_target.update_position(glm::vec3(left_edge, distance_to_screen, (float) (random_engine() % (screen_height * 1000)) / 1000 - screen_height / 2));
+                new_target.direction = glm::vec3(1, 0, 0);
+                new_target.speed = speed;
+            copies.insert(copies.end(), new_target);
+            timeToNextTarget = random_engine() % interval + interval;
         }
 
-        std::list<glm::vec3>::iterator cur = copies.begin();
+        ObjectArray::update_time(timeElapsed);
+
+        std::list<SimpleObject>::iterator cur = copies.begin();
         while (cur != copies.end())
         {
-            *cur += glm::vec3(speed, 0, 0) * (float) timeElapsed.count();
-            if (cur->x > 10)
+            if (cur->position.x > right_edge)
                 cur = copies.erase(cur);
             else ++cur;
-        }
-    }
-
-    void draw(GLint posAttrib, GLint texAttrib, GLint uniModel)
-    {
-        glBindBuffer(GL_ARRAY_BUFFER, object.vertexBuffer);
-        glVertexAttribPointer(posAttrib, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GL_FLOAT), 0);
-        glVertexAttribPointer(texAttrib, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GL_FLOAT), (void*)(3 * sizeof(GL_FLOAT)));
-        glBindTexture(GL_TEXTURE_2D, object.texture);
-
-        std::list<glm::vec3>::iterator cur = copies.begin();
-        while (cur != copies.end())
-        {
-            glUniformMatrix4fv(uniModel, 1, GL_FALSE, glm::value_ptr(glm::translate(object.model, *cur)));
-            glDrawArrays(GL_TRIANGLES, 0, object.vertexCount);
-            ++cur;
         }
     }
 };
