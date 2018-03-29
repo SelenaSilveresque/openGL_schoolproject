@@ -47,7 +47,7 @@ struct BulletArray : public ObjectArray
             std::list<SimpleObject>::iterator target = targets.copies.begin();
             while (target != targets.copies.end())
             {
-                if (cur->position.y + 1 > distance_to_screen && pow(cur->position.x - target->position.x, 2) + pow(cur->position.z - target->position.z, 2) < 0.5) {
+                if (cur->position.y + 1 > distance_to_screen && pow(cur->position.x - target->position.x, 2) + pow(cur->position.z - target->position.z, 2) < 1.3) {
                     target = targets.copies.erase(target);
                     ++score;
                 }
