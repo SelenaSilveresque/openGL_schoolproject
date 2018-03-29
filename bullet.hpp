@@ -10,6 +10,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include <cmath>
 #include <ctime>
 #include <list>
 
@@ -17,7 +18,6 @@ struct BulletArray : public ObjectArray
 {
     BulletArray()
     {
-        speed = 0.1;
         update_buffer(createSquareBuffer());
         update_texture("defaultBulletTexture.png");
     }
@@ -44,6 +44,13 @@ struct BulletArray : public ObjectArray
         std::list<SimpleObject>::iterator cur = copies.begin();
         while (cur != copies.end())
         {
+            std::list<SimpleObject>::iterator target = targets.copies.begin();
+            while (target != targets.copies.end())
+            {
+                if (cur->position.y + 1 > distance_to_screen && pow(cur->position.x - target->position.x, 2) + pow(cur->position.z - target->position.z, 2) < 1)
+                    target = targets.copies.erase(target);
+                else ++target;
+            }
             if (cur->position.x <  left_edge
              || cur->position.x > right_edge
              || cur->position.y > distance_to_screen
