@@ -11,9 +11,11 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <SFML/Graphics.hpp>
 #include <SFML/Window.hpp>
+#include <SFML/Graphics/Font.hpp>
 
 #include <chrono>
 #include <iostream>
+#include <string>
 
 const int WinWidth  = 800;
 const int WinHeight = 600;
@@ -89,9 +91,20 @@ int main()
         crosshair.update_position(glm::vec3(0, 10, 0));
         crosshair.update_buffer(createSquareBuffer());
         crosshair.update_texture("crosshair.png");
+    DefaultObject scoreText;
+        scoreText.update_size(glm::vec3(1));
+        scoreText.update_position(glm::vec3(8, 25, 9));
+        scoreText.update_buffer(createSquareBuffer());
+        scoreText.update_texture("scoreText.png");
+    numberObject numText;
+        numText.update_size(glm::vec3(1));
+        numText.update_buffer(createNumberBuffer());
+        numText.update_texture("numbers.png");
 
-    bool running = true;
     last_frame = std::chrono::steady_clock::now();
+    bool running = true;
+
+    int score = 0;
 
     while (running)
     {
@@ -100,7 +113,7 @@ int main()
         {
             int timeElapsed = std::chrono::duration_cast<std::chrono::milliseconds>(current_frame - last_frame).count();
             targets.update_time(timeElapsed);
-            bullets.update_time(timeElapsed, targets);
+            bullets.update_time(timeElapsed, targets, score);
             last_frame = current_frame;
 
             sf::Event event;
@@ -176,12 +189,16 @@ int main()
 
             glUniformMatrix4fv(uniView, 1, GL_FALSE, glm::value_ptr(_2d_view_matrix));
             crosshair .draw(posAttrib, texAttrib, uniModel);
+            scoreText .draw(posAttrib, texAttrib, uniModel);
+            numText   .draw(posAttrib, texAttrib, uniModel, score);
 
             window.display();
         }
     }
 
     glDeleteVertexArrays(1, &vertexArray);
+
+    printf("%s\n", gluErrorString(glGetError()));
 
     window.close();
     return 0;

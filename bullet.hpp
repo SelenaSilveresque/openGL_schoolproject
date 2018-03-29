@@ -37,7 +37,7 @@ struct BulletArray : public ObjectArray
         right_edge = 10,
         distance_to_screen = 10,
         screen_height = 8;
-    void update_time(int timeElapsed, ObjectArray &targets)
+    void update_time(int timeElapsed, ObjectArray &targets, int &score)
     {
         ObjectArray::update_time(timeElapsed);
 
@@ -47,8 +47,10 @@ struct BulletArray : public ObjectArray
             std::list<SimpleObject>::iterator target = targets.copies.begin();
             while (target != targets.copies.end())
             {
-                if (cur->position.y + 1 > distance_to_screen && pow(cur->position.x - target->position.x, 2) + pow(cur->position.z - target->position.z, 2) < 1)
+                if (cur->position.y + 1 > distance_to_screen && pow(cur->position.x - target->position.x, 2) + pow(cur->position.z - target->position.z, 2) < 0.5) {
                     target = targets.copies.erase(target);
+                    ++score;
+                }
                 else ++target;
             }
             if (cur->position.x <  left_edge
