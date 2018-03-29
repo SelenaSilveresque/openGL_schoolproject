@@ -22,7 +22,7 @@ struct BulletArray : public ObjectArray
         update_texture("defaultBulletTexture.png");
     }
 
-    const float bullet_size = 0.1;
+    float bullet_size = 0.1;
     void shoot_bullet(glm::vec3 cameraFront)
     {
         SimpleObject new_bullet;
@@ -33,10 +33,10 @@ struct BulletArray : public ObjectArray
         copies.insert(copies.end(), new_bullet);
     }
 
-    const int left_edge = -10,
-              right_edge = 10,
-              distance_to_screen = 10,
-              screen_height = 8;
+    int left_edge = -10,
+        right_edge = 10,
+        distance_to_screen = 10,
+        screen_height = 8;
     void update_time(int timeElapsed)
     {
         ObjectArray::update_time(timeElapsed);
