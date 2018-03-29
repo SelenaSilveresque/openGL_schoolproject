@@ -37,7 +37,7 @@ struct BulletArray : public ObjectArray
         right_edge = 10,
         distance_to_screen = 10,
         screen_height = 8;
-    void update_time(int timeElapsed)
+    void update_time(int timeElapsed, ObjectArray &targets)
     {
         ObjectArray::update_time(timeElapsed);
 
