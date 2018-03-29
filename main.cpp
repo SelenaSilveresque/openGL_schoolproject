@@ -67,7 +67,9 @@ int main()
     glEnableVertexAttribArray(texAttrib);
 
     TargetArray targets;
+        targets.speed = 0.002;
     BulletArray bullets;
+        bullets.speed = 0.02;
 
     DefaultObject background;
         background.update_size(glm::vec3(10));
@@ -95,7 +97,7 @@ int main()
         {
             int timeElapsed = std::chrono::duration_cast<std::chrono::milliseconds>(current_frame - last_frame).count();
             targets.update_time(timeElapsed);
-            bullets.update_time(timeElapsed);
+            bullets.update_time(timeElapsed, targets);
             last_frame = current_frame;
 
             sf::Event event;
@@ -112,6 +114,9 @@ int main()
                     {
                     case sf::Keyboard::Escape:
                         running = false;
+                        break;
+                    case sf::Keyboard::F2:
+                        targets = TargetArray();
                         break;
                     default:
                         break;
