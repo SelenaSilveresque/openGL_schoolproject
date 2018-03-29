@@ -20,7 +20,7 @@ const int WinHeight = 600;
 const sf::Vector2i defaultMousePosition(WinWidth / 2, WinHeight / 2);
 
 const float viewAngle = 45;
-const float nearPlane = 0.1;
+const float nearPlane = 1;
 const float  farPlane = 100;
 
 const float mouseSensitivity = 0.05;
@@ -29,11 +29,14 @@ glm::vec3 cameraPos  (0, 0, 0),
           cameraUp   (0, 0, 1);
 float yaw = 0, pitch = 0;
 
-glm::mat4 projection_matrix = glm::perspective(glm::radians(45.0f), 4.0f / 3.0f, 0.5f, 20.0f);
+glm::mat4 projection_matrix = glm::perspective(glm::radians(viewAngle), static_cast<float>(WinWidth) / WinHeight, nearPlane, farPlane);
 glm::mat4   _2d_view_matrix = glm::lookAt(glm::vec3(0), glm::vec3(0, 1, 0), glm::vec3(0, 0, 1));
 glm::mat4   _3d_view_matrix = glm::lookAt(glm::vec3(0), glm::vec3(0, 1, 0), glm::vec3(0, 0, 1));
 
 std::chrono::steady_clock::time_point last_frame, current_frame;
+
+const float targets_speed = 0.005;
+const float bullets_speed = 0.02;
 
 int main()
 {
@@ -67,9 +70,9 @@ int main()
     glEnableVertexAttribArray(texAttrib);
 
     TargetArray targets;
-        targets.speed = 0.002;
+        targets.speed = targets_speed;
     BulletArray bullets;
-        bullets.speed = 0.02;
+        bullets.speed = bullets_speed;
 
     DefaultObject background;
         background.update_size(glm::vec3(10));
@@ -117,6 +120,7 @@ int main()
                         break;
                     case sf::Keyboard::F2:
                         targets = TargetArray();
+                        targets.speed = targets_speed;
                         break;
                     default:
                         break;
