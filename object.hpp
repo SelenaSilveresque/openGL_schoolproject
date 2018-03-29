@@ -18,7 +18,7 @@ struct SimpleObject
               rot   = glm::mat4(1),
               scale = glm::mat4(1);
 
-    glm::vec3 position  = glm::vec3(0);
+    glm::vec3 position = glm::vec3(0);
     void update_position(const glm::vec3 &t)
     {
         trans = glm::translate(trans, t);
@@ -113,6 +113,31 @@ struct ObjectArray : public DefaultObject
     }
 };
 
+struct numberObject : public DefaultObject
+{
+    void draw(GLint posAttrib, GLint texAttrib, GLint uniModel, int score)
+    {
+        glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+            glVertexAttribPointer(posAttrib, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GL_FLOAT), 0);
+            glVertexAttribPointer(texAttrib, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GL_FLOAT), (void*)(3 * sizeof(GL_FLOAT)));
+        glBindTexture(GL_TEXTURE_2D, texture);
+
+        std::vector<int> number;
+        while (score > 0) {
+            number.push_back(score % 10);
+            score /= 10;
+        }
+
+        position = glm::vec3(8.5, 25, 9);
+        trans = glm::translate(glm::vec3(8.5, 25, 9));
+        for (int i = number.size() - 1; i >= 0; i--) {
+            update_position(glm::vec3(2, 0 ,0));
+            glUniformMatrix4fv(uniModel, 1, GL_FALSE, glm::value_ptr(trans * rot * scale));
+            glDrawArrays(GL_TRIANGLES, number[i] * 6, 6);
+        }
+    }
+};
+
 std::vector<GLfloat> createSquareBuffer() /** perpendicular to y-axis **/
 {
     std::vector<GLfloat> result = {
@@ -123,6 +148,27 @@ std::vector<GLfloat> createSquareBuffer() /** perpendicular to y-axis **/
          1, 0,  1, 1, 0,
          1, 0, -1, 1, 1
     };
+    return result;
+}
+
+std::vector<GLfloat> createNumberBuffer()
+{
+    std::vector<GLfloat> result;
+
+    for (float j = 0; j < 2; j++) {
+        float top = j / 2;
+        for (int i = 0; i < 5; i++) {
+            std::vector<GLfloat> numCoor = {
+                -1, 0,  1, 0.2 * i,       top,
+                 1, 0,  1, 0.2 * (i + 1), top,
+                -1, 0, -1, 0.2 * i,       top + 0.5,
+                 1, 0,  1, 0.2 * (i + 1), top,
+                 1, 0, -1, 0.2 * (i + 1), top + 0.5,
+                -1, 0, -1, 0.2 * i,       top + 0.5
+            };
+            result.insert(result.end(), numCoor.begin(), numCoor.end());
+        }
+    }
     return result;
 }
 
