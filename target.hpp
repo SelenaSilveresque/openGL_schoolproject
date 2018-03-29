@@ -23,7 +23,7 @@ struct TargetArray : public ObjectArray
     TargetArray()
     {
         update_buffer(createSquareBuffer());
-        update_texture("defaultTargetTexture.png");
+        update_texture("texture/defaultTargetTexture.png");
         timeToNextTarget = random_engine() % interval + interval;
     }
 

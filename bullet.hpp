@@ -19,7 +19,7 @@ struct BulletArray : public ObjectArray
     BulletArray()
     {
         update_buffer(createSquareBuffer());
-        update_texture("defaultBulletTexture.png");
+        update_texture("texture/defaultBulletTexture.png");
     }
 
     float bullet_size = 0.1;
