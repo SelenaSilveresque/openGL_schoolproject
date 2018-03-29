@@ -30,12 +30,12 @@ const char* loadShader(const char *shaderSource)
 
 GLuint createDefaultShaderProgram()
 {
-    const GLchar* defaultVertexShaderSource = loadShader("vertexShader.shd");
+    const GLchar* defaultVertexShaderSource = loadShader("shader/vertexShader.shd");
     GLuint defaultVertexShader = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(defaultVertexShader, 1, &defaultVertexShaderSource, NULL);
     glCompileShader(defaultVertexShader);
 
-    const GLchar* defaultFragmentShaderSource = loadShader("fragmentShader.shd");
+    const GLchar* defaultFragmentShaderSource = loadShader("shader/fragmentShader.shd");
     GLuint defaultFragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(defaultFragmentShader, 1, &defaultFragmentShaderSource, NULL);
     glCompileShader(defaultFragmentShader);
