@@ -16,7 +16,7 @@ sudo apt-get install build-essential
 sudo apt-get install libglew1.5-dev libglm-dev
 ```
 Download SOIL from their [website](http://www.lonesock.net/soil.html).
-Extract the archive, navigate to `projects/makefile' and create a folder named 'obj'.
+Extract the archive, navigate to `projects/makefile` and create a folder named `obj`.
 To compile and install SOIL:
 ```
 make
