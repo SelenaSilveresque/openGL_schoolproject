@@ -22,16 +22,14 @@ struct TargetArray : public ObjectArray
     int interval = 500;
     TargetArray()
     {
-        update_buffer(createSquareBuffer());
-        update_texture("texture/defaultTargetTexture.png");
         timeToNextTarget = random_engine() % interval + interval;
     }
 
     int left_edge = -10,
         right_edge = 10,
-        distance_to_screen = 10,
         screen_height = 8;
-    float target_size = 1;
+    float target_size = 1,
+          distance_to_screen = 10.5;
     void update_time(int timeElapsed)
     {
         speed += timeElapsed * 5e-8;

@@ -13,14 +13,11 @@
 #include <cmath>
 #include <ctime>
 #include <list>
+#include <chrono>
 
 struct BulletArray : public ObjectArray
 {
-    BulletArray()
-    {
-        update_buffer(createSquareBuffer());
-        update_texture("texture/defaultBulletTexture.png");
-    }
+    BulletArray(){}
 
     float bullet_size = 0.1;
     void shoot_bullet(glm::vec3 cameraFront)
@@ -35,11 +32,13 @@ struct BulletArray : public ObjectArray
 
     int left_edge = -10,
         right_edge = 10,
-        distance_to_screen = 10,
         screen_height = 8;
-    void update_time(int timeElapsed, ObjectArray &targets, int &score)
+    float distance_to_screen = 10.5;
+    bool bulletHit = false;
+    void update_time(int timeElapsed, ObjectArray& targets, int& score, int& life)
     {
         ObjectArray::update_time(timeElapsed);
+
 
         std::list<SimpleObject>::iterator cur = copies.begin();
         while (cur != copies.end())
@@ -47,18 +46,25 @@ struct BulletArray : public ObjectArray
             std::list<SimpleObject>::iterator target = targets.copies.begin();
             while (target != targets.copies.end())
             {
-                if (cur->position.y + 1 > distance_to_screen && pow(cur->position.x - target->position.x, 2) + pow(cur->position.z - target->position.z, 2) < 1.3) {
+                if (cur->position.y + 1 > distance_to_screen && pow(cur->position.x - target->position.x, 2) + pow(cur->position.z - target->position.z, 2) < 1) {
                     target = targets.copies.erase(target);
                     ++score;
+                    bulletHit = true;
                 }
-                else ++target;
+                else {
+                    ++target;
+                }
             }
-            if (cur->position.x <  left_edge
+
+            if (cur->position.x < left_edge
              || cur->position.x > right_edge
              || cur->position.y > distance_to_screen
              || cur->position.z < -screen_height / 2
-             || cur->position.z >  screen_height / 2)
+             || cur->position.z >  screen_height / 2) {
+                if (!bulletHit) life--;
                 cur = copies.erase(cur);
+                bulletHit = false;
+             }
             else ++cur;
         }
     }

@@ -11,6 +11,7 @@
 
 #include <list>
 #include <vector>
+#include <chrono>
 
 struct SimpleObject
 {
@@ -43,6 +44,11 @@ struct SimpleObject
     }
 };
 
+struct BulletObject : public SimpleObject
+{
+    std::chrono::steady_clock::time_point StartTime;
+};
+
 struct DefaultObject : public SimpleObject
 {
     GLuint vertexBuffer;
@@ -57,6 +63,8 @@ struct DefaultObject : public SimpleObject
     GLuint texture;
     void update_texture(const char* texturefile)
     {
+        glBindTexture(GL_TEXTURE_2D, texture);
+
         int width, height;
         unsigned char* image = SOIL_load_image(texturefile, &width, &height, 0, SOIL_LOAD_RGBA);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
@@ -80,10 +88,7 @@ struct DefaultObject : public SimpleObject
 
     DefaultObject() {
         glGenBuffers(1, &vertexBuffer);
-        glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-
         glGenTextures(1, &texture);
-        glBindTexture(GL_TEXTURE_2D, texture);
     }
 };
 
@@ -128,12 +133,33 @@ struct numberObject : public DefaultObject
             score /= 10;
         }
 
-        position = glm::vec3(8.5, 25, 9);
-        trans = glm::translate(glm::vec3(8.5, 25, 9));
+        position = glm::vec3(0.34, 1, 0.3);
+        trans = glm::translate(position);
+
         for (int i = number.size() - 1; i >= 0; i--) {
-            update_position(glm::vec3(2, 0 ,0));
+            update_position(glm::vec3(0.085, 0 ,0));
             glUniformMatrix4fv(uniModel, 1, GL_FALSE, glm::value_ptr(trans * rot * scale));
             glDrawArrays(GL_TRIANGLES, number[i] * 6, 6);
+        }
+    }
+};
+
+struct lifeObject : public DefaultObject
+{
+    void draw(GLint posAttrib, GLint texAttrib, GLint uniModel, int life)
+    {
+        glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+            glVertexAttribPointer(posAttrib, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GL_FLOAT), 0);
+            glVertexAttribPointer(texAttrib, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GL_FLOAT), (void*)(3 * sizeof(GL_FLOAT)));
+        glBindTexture(GL_TEXTURE_2D, texture);
+
+        position = glm::vec3(0.3, 1, 0.38);
+        trans = glm::translate(position);
+
+        for (int i = life; i > 0; i--) {
+            update_position(glm::vec3(0.045, 0 ,0));
+            glUniformMatrix4fv(uniModel, 1, GL_FALSE, glm::value_ptr(trans * rot * scale));
+            glDrawArrays(GL_TRIANGLES, 0, 6);
         }
     }
 };
