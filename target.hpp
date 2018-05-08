@@ -30,7 +30,7 @@ struct TargetArray : public ObjectArray
         screen_height = 8;
     float target_size = 1,
           distance_to_screen = 10.5;
-    void update_time(int timeElapsed)
+    void update_time(int timeElapsed, int& life)
     {
         speed += timeElapsed * 5e-8;
 
@@ -54,8 +54,10 @@ struct TargetArray : public ObjectArray
         std::list<SimpleObject>::iterator cur = copies.begin();
         while (cur != copies.end())
         {
-            if (cur->position.x > right_edge)
+            if (cur->position.x > right_edge) {
                 cur = copies.erase(cur);
+                life--;
+            }
             else ++cur;
         }
     }

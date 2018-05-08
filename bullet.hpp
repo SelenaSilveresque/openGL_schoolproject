@@ -35,7 +35,7 @@ struct BulletArray : public ObjectArray
         screen_height = 8;
     float distance_to_screen = 10.5;
     bool bulletHit = false;
-    void update_time(int timeElapsed, ObjectArray& targets, int& score, int& life)
+    void update_time(int timeElapsed, ObjectArray& targets, int& score)
     {
         ObjectArray::update_time(timeElapsed);
 
@@ -61,7 +61,7 @@ struct BulletArray : public ObjectArray
              || cur->position.y > distance_to_screen
              || cur->position.z < -screen_height / 2
              || cur->position.z >  screen_height / 2) {
-                if (!bulletHit) life--;
+                //if (!bulletHit) life--;
                 cur = copies.erase(cur);
                 bulletHit = false;
              }

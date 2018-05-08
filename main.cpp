@@ -11,7 +11,6 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <SFML/Graphics.hpp>
 #include <SFML/Window.hpp>
-#include <SFML/Graphics/Font.hpp>
 
 #include <chrono>
 #include <iostream>
@@ -38,7 +37,7 @@ glm::mat4   _3d_view_matrix = glm::lookAt(glm::vec3(0), glm::vec3(0, 1, 0), glm:
 
 std::chrono::steady_clock::time_point last_frame, current_frame;
 
-const int   targets_interval = 500;
+const int   targets_interval = 1300;
 const float targets_speed    = 0.005;
 const float bullets_speed    = 0.02;
 
@@ -170,9 +169,10 @@ int main()
         if (current_frame - last_frame >= std::chrono::milliseconds(10))
         {
             int timeElapsed = std::chrono::duration_cast<std::chrono::milliseconds>(current_frame - last_frame).count();
-            if (life == 0) timeElapsed = 0;
-            targets.update_time(timeElapsed);
-            bullets.update_time(timeElapsed, targets, score, life);
+            if (life > 0) {
+                targets.update_time(timeElapsed, life);
+                bullets.update_time(timeElapsed, targets, score);
+            }
 
             last_frame = current_frame;
 
