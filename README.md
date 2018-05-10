@@ -1,7 +1,8 @@
-# openGL_schoolproject
+# OpenGL School Project
+A very simple FPS game.
 
 ## Compiling
-### Linux
+### GNU/Linux
 You first need to install OpenGL, GLEW, and SFML. Following commands have been used on Ubuntu 17.10.
 ```
 $ sudo apt update
@@ -16,6 +17,5 @@ $ sudo make install
 ```
 Compile the main program
 ```
-g++ -std=c++11 main.cpp -o main -lSOIL -lGL -lGLU -lGLEW -lsfml-graphics -lsfml-window -lsfml-system
-
+$ g++ -std=c++11 main.cpp -o main -lSOIL -lGL -lGLU -lGLEW -lsfml-graphics -lsfml-window -lsfml-system
 ```
