@@ -7,6 +7,14 @@
 #include <stdio.h>
 #include <fstream>
 #include <iostream>
+#include <vector>
+
+// private namespace
+namespace
+{
+	// a vector to prevent strings from destructing
+	std::vector<std::string> __string_vector;
+}
 
 const char* loadShader(const char *shaderSource)
 {
@@ -25,7 +33,9 @@ const char* loadShader(const char *shaderSource)
     }
 
     fileStream.close();
-    return content.c_str();
+    
+    __string_vector.push_back(content);
+    return __string_vector.back().c_str();
 }
 
 GLuint createDefaultShaderProgram()
